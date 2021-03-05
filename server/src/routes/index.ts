@@ -1,1 +1,2 @@
-export { default as userRoutes } from "./user";
+export { default as userRouter } from "./user";
+export { default as sessionRouter } from "./session";
