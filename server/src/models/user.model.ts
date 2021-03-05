@@ -1,13 +1,14 @@
 import mongoose from "mongoose";
-import { compareSync, hashSync } from "bcrypt";
+import { compare, hash } from "bcrypt";
 
-interface IUserDocument extends mongoose.Document {
+export interface IUserDocument extends mongoose.Document {
   username: string;
   password: string;
   email: string;
+  comparePasswords(password: string): Promise<boolean>;
 }
 
-interface IUserModel extends mongoose.Model<IUserDocument> {
+export interface IUserModel extends mongoose.Model<IUserDocument> {
   doesNotExist(user: object): Promise<boolean>;
 }
 
@@ -35,9 +36,9 @@ const UserSchema = new mongoose.Schema<IUserDocument>(
   { timestamps: true }
 );
 
-UserSchema.pre<IUserDocument>("save", function () {
+UserSchema.pre<IUserDocument>("save", async function () {
   if (this.isModified("password")) {
-    this.password = hashSync(this.password, 10);
+    this.password = await hash(this.password, 10);
   }
 });
 
@@ -45,8 +46,8 @@ UserSchema.statics.doesNotExist = async function (field): Promise<boolean> {
   return (await this.where(field).countDocuments()) === 0;
 };
 
-UserSchema.methods.comparePasswords = function (password: string): boolean {
-  return compareSync(password, this.password);
+UserSchema.methods.comparePasswords = function (password: string) {
+  return compare(password, this.password);
 };
 
 const User = mongoose.model<IUserDocument, IUserModel>("User", UserSchema);
