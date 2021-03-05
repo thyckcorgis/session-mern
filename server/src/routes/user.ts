@@ -2,20 +2,24 @@ import { Router } from "express";
 
 import User from "../models/user.model";
 import { signUp } from "../validations/user";
+import { parseError, sessionizeUser } from "../util/helpers";
+import { SessionReq } from "../util/types";
 
-const userRoutes = Router();
+const userRouter = Router();
 
-userRoutes.post("", async (req, res) => {
+userRouter.post("", async (req: SessionReq, res) => {
   try {
     const { username, email, password } = req.body;
     const { error } = signUp.validate({ username, email, password });
     if (error) throw error;
     const newUser = new User({ username, email, password });
+    const sessionUser = sessionizeUser(newUser);
     await newUser.save();
-    res.send({ userId: newUser.id, username });
+    req.session.user = sessionUser;
+    res.send(sessionUser);
   } catch (err) {
-    res.status(400).send(err);
+    res.status(400).send(parseError(err));
   }
 });
 
-export default userRoutes;
+export default userRouter;
