@@ -50,3 +50,5 @@ UserSchema.methods.comparePasswords = function (password: string): boolean {
 };
 
 const User = mongoose.model<IUserDocument, IUserModel>("User", UserSchema);
+
+export default User;
