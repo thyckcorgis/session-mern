@@ -1,7 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
 import session from "express-session";
-import ConnectMongoDBSession from "connect-mongodb-session";
 import MongoStore from "connect-mongo";
 import { userRoutes } from "./routes";
 import { PORT, MONGO_URI, SESS_NAME, SESS_SECRET, SESS_LIFETIME, NODE_ENV } from "./config";
@@ -13,13 +12,6 @@ async function main() {
 
     mongoose.connection;
     const app = express();
-    const MongoDBStore = ConnectMongoDBSession(session);
-    const store = new MongoDBStore({
-      uri: MONGO_URI,
-      collection: "session",
-    });
-
-    store.on("error", (err) => console.log(err));
 
     app.disable("x-powered-by");
 
@@ -32,7 +24,15 @@ async function main() {
         secret: SESS_SECRET,
         saveUninitialized: false,
         resave: false,
-        store,
+        store: MongoStore.create({
+          mongoUrl: MONGO_URI,
+          mongoOptions: {
+            useUnifiedTopology: true,
+            useNewUrlParser: true,
+          },
+          collectionName: "session",
+          ttl: parseInt(SESS_LIFETIME.toString()) / 1000,
+        }),
         cookie: {
           sameSite: true,
           secure: NODE_ENV === "production",
