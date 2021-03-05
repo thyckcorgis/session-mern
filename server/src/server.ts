@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
-import { userRouter } from "./routes";
+import { sessionRouter, userRouter } from "./routes";
 import { PORT, MONGO_URI, SESS_NAME, SESS_SECRET, SESS_LIFETIME, NODE_ENV } from "./config";
 
 async function main() {
@@ -43,6 +43,7 @@ async function main() {
 
     const apiRouter = express.Router();
     app.use("/api", apiRouter);
+    apiRouter.use("/session", sessionRouter);
     apiRouter.use("/users", userRouter);
 
     app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
